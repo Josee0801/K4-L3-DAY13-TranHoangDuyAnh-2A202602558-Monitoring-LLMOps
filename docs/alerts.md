@@ -1,4 +1,4 @@
-# Template Alert và Runbook
+# Alert và Runbook
 
 Mỗi alert phải dựa trên triệu chứng người dùng hoặc SLO, không dựa trực tiếp vào tên implementation nội bộ.
 
@@ -20,41 +20,38 @@ Ví dụ dưới đây minh họa mức độ cụ thể cần có. Học viên 
 - Mitigation tạm thời: dựa trên evidence thực tế để rollback prompt, khôi phục cấu hình liên quan, tắt practice scenario hoặc giảm tải khi demo.
 - Owner: `student-<MSSV>`
 
-## Alert 1
+## Alert 1: High Latency P95
 
-- Tên:
-- Severity:
-- Duration:
-- Kênh thông báo: Slack
-- SLI/SLO liên quan:
-- Điều kiện và thời gian duy trì:
-- Ảnh hưởng tới người dùng:
-- Ba bước kiểm tra đầu tiên:
-- Mitigation tạm thời:
-- Owner:
+- Severity: `warning`
+- Duration: `5m`
+- Kênh thông báo: Slack `#k4-l3b-alerts`
+- SLI/SLO liên quan: `response_sent.latency_ms`, SLO latency <= 3000ms
+- Điều kiện: `p95(latency_ms) > 3000ms` trong 5 phút
+- Ảnh hưởng: người dùng phải chờ lâu hơn trước khi nhận câu trả lời.
+- Kiểm tra: xác nhận panel latency; lọc log lấy `correlation_id` có latency cao; mở trace cùng ID và so sánh retrieval với generation.
+- Mitigation: rollback prompt về version production ổn định, tắt scenario gây tải hoặc giảm concurrency.
+- Owner: `student-oncall`
 
-## Alert 2
+## Alert 2: High Error Rate
 
-- Tên:
-- Severity:
-- Duration:
-- Kênh thông báo: Slack
-- SLI/SLO liên quan:
-- Điều kiện và thời gian duy trì:
-- Ảnh hưởng tới người dùng:
-- Ba bước kiểm tra đầu tiên:
-- Mitigation tạm thời:
-- Owner:
+- Severity: `critical`
+- Duration: `5m`
+- Kênh thông báo: Slack `#k4-l3b-alerts`
+- SLI/SLO liên quan: tỷ lệ request lỗi và SLO successful requests.
+- Điều kiện: `error_rate_pct > 2%` trong 5 phút
+- Ảnh hưởng: người dùng nhận lỗi hoặc không nhận được câu trả lời.
+- Kiểm tra: xác nhận panel errors; lọc `request_failed` theo `error_type` và `correlation_id`; mở trace để xem span lỗi.
+- Mitigation: tắt incident practice đang gây lỗi, khôi phục dependency/configuration ổn định và theo dõi error rate.
+- Owner: `student-oncall`
 
-## Alert 3
+## Alert 3: Low Retrieval Success
 
-- Tên:
-- Severity:
-- Duration:
-- Kênh thông báo: Slack
-- SLI/SLO liên quan:
-- Điều kiện và thời gian duy trì:
-- Ảnh hưởng tới người dùng:
-- Ba bước kiểm tra đầu tiên:
-- Mitigation tạm thời:
-- Owner:
+- Severity: `warning`
+- Duration: `10m`
+- Kênh thông báo: Slack `#k4-l3b-alerts`
+- SLI/SLO liên quan: `retrieval_success_rate_pct`, guardrail tối thiểu 90%.
+- Điều kiện: `retrieval_success_rate_pct < 90%` trong 10 phút
+- Ảnh hưởng: câu trả lời có thể thiếu context hoặc giảm chất lượng.
+- Kiểm tra: xem panel errors/retrieval; lọc log có `tool_success=false`; mở trace và kiểm tra retriever span.
+- Mitigation: khôi phục vector store/configuration, chuyển tạm sang fallback an toàn và đánh giá lại quality score.
+- Owner: `student-oncall`

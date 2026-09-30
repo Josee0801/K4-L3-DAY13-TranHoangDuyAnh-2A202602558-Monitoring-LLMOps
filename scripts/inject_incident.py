@@ -17,8 +17,10 @@ BASE_URL = "http://127.0.0.1:8000"
 
 
 def main() -> None:
+    global BASE_URL
     configure_utf8_stdio()
     parser = argparse.ArgumentParser()
+    parser.add_argument("--base-url", default=BASE_URL, help="API base URL")
     parser.add_argument(
         "--scenario",
         choices=["rag_slow", "tool_fail", "cost_spike"],
@@ -26,6 +28,7 @@ def main() -> None:
     )
     parser.add_argument("--disable", action="store_true")
     args = parser.parse_args()
+    BASE_URL = args.base_url.rstrip("/")
 
     scenario = resolve_incident(args.scenario)
     path = f"/incidents/{scenario}/disable" if args.disable else f"/incidents/{scenario}/enable"

@@ -1,0 +1,2 @@
+﻿Command: python scripts/validate_dashboard.py
+Result: VALID - 6/6 dashboard panels
